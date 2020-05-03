@@ -2,19 +2,20 @@ const express = require("express");
 const router = express.Router();
 const passport = require("passport");
 const jwt = require("jsonwebtoken");
-const User = require("../models/User");
+const Admin = require("../models/Admin");
 const config = require("../config/database");
 
 router.post("/register", (req, res) => {
-    const newUser = new User({
+    const newAdmin = new Admin({
         name: req.body.name,
         email: req.body.email,
         username: req.body.username,
         password: req.body.password,
-        contact: req.body.contact
+        contact: req.body.contact,
+        job_profile: req.body.job_profile
     });
 
-    User.addUser(newUser, (err, user) => {
+    Admin.addAdmin(newAdmin, (err, admin) => {
         if (err) {
             let message = "";
             if (err.errors.email) message = "Email is already taken. ";
@@ -26,7 +27,7 @@ router.post("/register", (req, res) => {
         } else {
             return res.json({
                 success: true,
-                message: "User registration is successful"
+                message: "Admin registration is successful"
             });
         }
     });
@@ -36,26 +37,26 @@ router.post("/login", (req, res) => {
     const username = req.body.username;
     const password = req.body.password;
 
-    User.getUserByUsername(username, (err, user) => {
+    Admin.getAdminByUsername(username, (err, admin) => {
         if (err) throw err;
-        if (!user) {
+        if (!admin) {
             return res.json({
                 success: false,
-                message: "User does not exists"
+                message: "Admin does not exists"
             });
         }
-        User.comparePassword(password, user.password, (err, isMatch) => {
+        Admin.comparePassword(password, admin.password, (err, isMatch) => {
             if (err) throw err;
             if (isMatch) {
                 const token = jwt.sign(
                     {
-                        type: "user",
+                        type: "admin",
                         data: {
-                            id: user._id,
-                            username: user.username,
-                            name: user.name,
-                            email: user.email,
-                            contact: user.contact
+                            id: admin._id,
+                            username: admin.username,
+                            name: admin.name,
+                            email: admin.email,
+                            contact: admin.contact
                         }
                     }, config.secret, {
                         expiresIn: 604800 // for 1 week time in milliseconds
@@ -77,7 +78,7 @@ router.post("/login", (req, res) => {
 });
 
 /**
- * Get authenticated user profiel
+ * Get authenticated admin profile
  */
 router.get("/profile", passport.authenticate("jwt", { session: false }), (req, res) => {
     return res.json(req.user);

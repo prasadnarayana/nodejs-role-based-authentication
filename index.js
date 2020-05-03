@@ -41,9 +41,24 @@ app.get("/", (req, res) => {
     });
 });
 
+// Custome middleware function to check the type of user
+const checkUserType = (req, res, next) => {
+    const userType = req.originalUrl.split("/")[2];
+
+    // Bring in the passport authentication strategy
+    require("./config/passport")(userType, passport);
+
+    next();
+}
+app.use(checkUserType);
+
 // Bring in the user routes
 const users = require("./routes/users");
 app.use("/api/users", users);
+
+const admin = require("./routes/admin");
+app.use("/api/admin", admin);
+
 
 app.listen(PORT, () => {
     console.log(`Server started on port ${PORT}`);
