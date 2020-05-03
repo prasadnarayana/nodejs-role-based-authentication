@@ -5,6 +5,17 @@ const cors = require("cors");
 const passport = require("passport");
 const path = require("path");
 
+// Bring in the database object
+const config = require("./config/database");
+
+// Mongodb Config
+mongoose.set("useCreateIndex", true);
+
+// Connect with the databse
+mongoose.connect(config.database, { useNewUrlParser: true })
+.then(() => console.log("Database connected successfully " + config.database))
+.catch(err => console.log(err));
+
 // Initialize the app
 const app = express();
 
@@ -29,6 +40,10 @@ app.get("/", (req, res) => {
         message: "This is node.js role based authentication system"
     });
 });
+
+// Bring in the user routes
+const users = require("./routes/users");
+app.use("/api/users", users);
 
 app.listen(PORT, () => {
     console.log(`Server started on port ${PORT}`);
